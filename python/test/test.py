@@ -23,6 +23,7 @@ simulation_start_epoch = time_conversion.julian_day_to_seconds_since_epoch(
 simulation_end_epoch = time_conversion.julian_day_to_seconds_since_epoch(
     time_conversion.calendar_date_to_julian_day(dates["end_date"]))
 
+
 # Create default body settings and bodies system
 bodies_to_create = ["Earth", "Sun", "Moon", "Jupiter"]
 global_frame_origin = "Earth"
@@ -146,7 +147,7 @@ satellite_shadow_function = eclipses.compute_shadow_vector(satellite_position, s
                                                            sun_radius, earth_radius)
 
 groundstation = get_input_data.get_station(groundstation_name)
-visibility, elevation = communication_windows.compute_visibility(ecef_position, groundstation)
+visibility, elevation, time = communication_windows.compute_visibility(ecef_position, groundstation,dates_name)
 
 # Export results to a CSV file
 read_write.write_results(spacecraft_name, orbit_name, dates_name,
@@ -182,8 +183,7 @@ plt.show()
 fig = plt.figure(figsize=(7, 5.2), dpi=500)
 ax = fig.add_subplot(111)
 ax.set_title(f'Spacecraft ground station visibility function')
-ax.plot(states_array[:, 0] / 3600, visibility, label=bodies_to_propagate[0],
-        linestyle='-')
+ax.plot(time, visibility, label=bodies_to_propagate[0],linestyle='-')
 ax.set(xlabel='Time [h]', ylabel='Visibility function')
 plt.savefig(f'results/{spacecraft_name}_{orbit_name}_{dates_name}_visibility_function.png')
 plt.show()
