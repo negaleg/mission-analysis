@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 from typing import Dict
 
 import numpy as np
+import pandas as pd
 from pyproj import Transformer
 from tudatpy.kernel.astro import time_conversion
 from tudatpy.kernel.astro.time_conversion import julian_day_to_calendar_date, seconds_since_epoch_to_julian_day
@@ -37,4 +38,8 @@ def compute_visibility(pos_ecf, station, dates_name):
     dot_product = np.dot(station_ecf_unit, station_sat_vector_unit)
     elevation = 90 - np.arccos(dot_product) * 180 / np.pi
     visibility = elevation >= station["minimum_elevation"]
-    return visibility, elevation, time
+
+    communication_windows = pd.DataFrame({"time": time, "visibility": visibility})
+    communication_windows['start_of_streak'] = communication_windows.visibility.ne(communication_windows['visibility'].shift()) #we define the initial points of a communication window
+    communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
+    return visibility, elevation, time, communication_windows
