@@ -25,6 +25,7 @@ def compute_visibility(pos_ecf, station, dates_name):
         time_conversion.calendar_date_to_julian_day(dates_new["start_date"])) #seconds since epoch
     simulation_end_epoch = time_conversion.julian_day_to_seconds_since_epoch(
         time_conversion.calendar_date_to_julian_day(dates_new["end_date"])) #seconds since epoch
+    print(dates_new["end_date"])
     simulation_step_epoch = dates_new["step_size"].seconds  # seconds
     tm = np.arange(simulation_start_epoch, simulation_end_epoch + simulation_step_epoch, simulation_step_epoch)
     time=[]
