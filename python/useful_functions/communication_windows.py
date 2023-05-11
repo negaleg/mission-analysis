@@ -13,6 +13,27 @@ from useful_functions import get_input_data
 def compute_visibility(pos_ecf, station, dates_name):
     """
     Compute the visibility of the spacecraft from a given ground station.
+    
+    Parameters
+    ----------
+    satellite_position : ndarray
+        Array of satellite positions in ECI frame
+    sun_position : ndarray
+        Array of sun positions in ECI frame
+    earth_position : ndarray
+        Array of earth positions in ECI frame
+    sun_radius : float
+        Sun radius in meters
+    earth_radius : float
+        Earth radius in meters
+
+    Returns
+    -------
+    shadow_vector : ndarray
+         Returns a vector with the value of the shadow function at each epoch :
+         - 0 if the satellite is in umbra
+         - 1 if the satellite is fully sunlit
+         - a value between 0 and 1 if the satellite is in penumbra
     """
     transformer = Transformer.from_crs(
         {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
@@ -25,7 +46,6 @@ def compute_visibility(pos_ecf, station, dates_name):
         time_conversion.calendar_date_to_julian_day(dates_new["start_date"])) #seconds since epoch
     simulation_end_epoch = time_conversion.julian_day_to_seconds_since_epoch(
         time_conversion.calendar_date_to_julian_day(dates_new["end_date"])) #seconds since epoch
-    print(dates_new["end_date"])
     simulation_step_epoch = dates_new["step_size"].seconds  # seconds
     tm = np.arange(simulation_start_epoch, simulation_end_epoch + simulation_step_epoch, simulation_step_epoch)
     time=[]
@@ -43,4 +63,6 @@ def compute_visibility(pos_ecf, station, dates_name):
     communication_windows = pd.DataFrame({"time": time, "visibility": visibility})
     communication_windows['start_of_streak'] = communication_windows.visibility.ne(communication_windows['visibility'].shift()) #we define the initial points of a communication window
     communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
+    communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
+    communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
     return visibility, elevation, time, communication_windows
