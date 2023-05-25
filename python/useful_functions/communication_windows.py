@@ -16,24 +16,38 @@ def compute_visibility(pos_ecf, station, dates_name):
 
     Parameters
     ----------
-    satellite_position : ndarray
-        Array of satellite positions in ECI frame
-    sun_position : ndarray
-        Array of sun positions in ECI frame
-    earth_position : ndarray
-        Array of earth positions in ECI frame
-    sun_radius : float
-        Sun radius in meters
-    earth_radius : float
-        Earth radius in meters
+    pos_ecf : ndarray
+        Array of satellite positions in ECIframe
+    station : dict
+        Dictionary containing longitude, latitude, altitude, and minimum elevation of the groundstation
+    dates_name : string
+        String of the name of a csv file containing the start date, the end date, and the step size of the simulation
 
     Returns
     -------
-    shadow_vector : ndarray
-         Returns a vector with the value of the shadow function at each epoch :
-         - 0 if the satellite is in umbra
-         - 1 if the satellite is fully sunlit
-         - a value between 0 and 1 if the satellite is in penumbra
+    visibility : ndarray
+        Returns a vector with the value of the visibility at each epoch :
+         - False if there is no communication between the satellite and the ground station
+         - True if there is communication between the satellite and the ground station
+
+    elevation : ndarray
+        Returns a vector containing the elevation angle between the satellite and the ground station
+
+    time : ndarray
+        Returns a vector containing the time in calendar date
+
+    communication_windows: dataframe
+        Returns a data frame containing the following information about the communication windows
+         - 'time'                   : time in calendar date
+         - 'visibility'             : boolean on state of visibility
+         - 'start_of_streak'        : boolean which is 'True' if it is the start of a communication window
+                                        or a no-communication window, 'False' if not
+         - 'streak_id'              : integer that sequentially unequivocally identifies the communication window
+                                        or a no-communication window
+         - 'streak_counter'         : integer that identifies the elements of a single communication window
+                                        or a no-communication window
+         - 'streak_counter_seconds' : elapsed time in seconds since the start of a communication window
+                                        or a no-communication window
     """
     transformer = Transformer.from_crs(
         {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
@@ -65,4 +79,11 @@ def compute_visibility(pos_ecf, station, dates_name):
     communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
     communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
     communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+    shadow_df["partial"] = False
+    if shadow_df.shape[0] == 0:
+        return shadow_df
+    if shadow_df.loc[0, "start"] == epochs[0]:
+        shadow_df.loc[0, "partial"] = True
+    if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
+        shadow_df.loc[shadow_df.index[-1], "partial"] = True
     return visibility, elevation, time, communication_windows
