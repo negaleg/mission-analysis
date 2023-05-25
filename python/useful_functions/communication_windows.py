@@ -79,4 +79,11 @@ def compute_visibility(pos_ecf, station, dates_name):
     communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
     communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
     communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+    shadow_df["partial"] = False
+    if shadow_df.shape[0] == 0:
+        return shadow_df
+    if shadow_df.loc[0, "start"] == epochs[0]:
+        shadow_df.loc[0, "partial"] = True
+    if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
+        shadow_df.loc[shadow_df.index[-1], "partial"] = True
     return visibility, elevation, time, communication_windows
