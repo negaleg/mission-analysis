@@ -36,7 +36,7 @@ def compute_visibility(pos_ecf, station, dates_name):
     time : ndarray
         Returns a vector containing the time in calendar date
 
-    communication_windows: dataframe
+    visibility_windows: dataframe
         Returns a data frame containing the following information about the communication windows
          - 'time'                   : time in calendar date
          - 'visibility'             : boolean on state of visibility
@@ -74,11 +74,22 @@ def compute_visibility(pos_ecf, station, dates_name):
     elevation = 90 - np.arccos(dot_product) * 180 / np.pi
     visibility = elevation >= station["minimum_elevation"]
 
-    communication_windows = pd.DataFrame({"time": time, "visibility": visibility})
-    communication_windows['start_of_streak'] = communication_windows.visibility.ne(communication_windows['visibility'].shift()) #we define the initial points of a communication window
-    communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
-    communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
-    communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+
+
+    visibility_windows = pd.DataFrame({"time": time, "visibility": visibility})
+    visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(visibility_windows['visibility'].shift()) #we define the initial points of a communication window
+    visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
+    visibility_windows['streak_counter'] = visibility_windows.groupby('streak_id').cumcount() + 1
+    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+
+    communication_windows = pd.DataFrame()
+    for i in range(len(visibility)):
+        if visibility_windows['visbility']:
+            communication_windows['time'] = time[i]
+            communication_windows['visibility'] = visibility[i]
+            
+
+
     shadow_df["partial"] = False
     if shadow_df.shape[0] == 0:
         return shadow_df
@@ -86,4 +97,4 @@ def compute_visibility(pos_ecf, station, dates_name):
         shadow_df.loc[0, "partial"] = True
     if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
         shadow_df.loc[shadow_df.index[-1], "partial"] = True
-    return visibility, elevation, time, communication_windows
+    return visibility, elevation, time, visibility_windows
