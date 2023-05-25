@@ -85,12 +85,12 @@ def compute_visibility(pos_ecf, station, dates_name):
     communication_windows = pd.DataFrame()
     for i in range(len(visibility)):
         if visibility[i]:
-            communication_windows['time'] = time[i]
-            communication_windows['visibility'] = visibility[i]
-            communication_windows['start_of_streak'] = visibility_windows['start_of_streak'][i]
-            communication_windows['streak_id'] = visibility_windows['streak_id'][i]
-            communication_windows['streak_counter'] = visibility_windows['streak_counter'][i]
-            communication_windows['streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
+            communication_windows.at[i, 'time'] = time[i]
+            communication_windows.at[i, 'visibility'] = visibility[i]
+            communication_windows.at[i, 'start_of_streak'] = visibility_windows['start_of_streak'][i]
+            communication_windows.at[i, 'streak_id'] = visibility_windows['streak_id'][i]
+            communication_windows.at[i, 'streak_counter'] = visibility_windows['streak_counter'][i]
+            communication_windows.at[i, 'streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
     visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
 
     # shadow_df["partial"] = False
