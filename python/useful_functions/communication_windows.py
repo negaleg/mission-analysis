@@ -13,7 +13,7 @@ from useful_functions import get_input_data
 def compute_visibility(pos_ecf, station, dates_name):
     """
     Compute the visibility of the spacecraft from a given ground station.
-    
+
     Parameters
     ----------
     satellite_position : ndarray
