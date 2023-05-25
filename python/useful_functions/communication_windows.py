@@ -84,20 +84,20 @@ def compute_visibility(pos_ecf, station, dates_name):
 
     communication_windows = pd.DataFrame()
     for i in range(len(visibility)):
-        if visibility_windows['visbility']:
+        if visibility[i]:
             communication_windows['time'] = time[i]
             communication_windows['visibility'] = visibility[i]
-            communication_windows['start_streak'] = visibility_windows['start_streak'][i]
+            communication_windows['start_of_streak'] = visibility_windows['start_of_streak'][i]
             communication_windows['streak_id'] = visibility_windows['streak_id'][i]
             communication_windows['streak_counter'] = visibility_windows['streak_counter'][i]
             communication_windows['streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
     visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
 
-    shadow_df["partial"] = False
-    if shadow_df.shape[0] == 0:
-        return shadow_df
-    if shadow_df.loc[0, "start"] == epochs[0]:
-        shadow_df.loc[0, "partial"] = True
-    if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
-        shadow_df.loc[shadow_df.index[-1], "partial"] = True
-    return visibility, elevation, time, visibility_windows
+    # shadow_df["partial"] = False
+    # if shadow_df.shape[0] == 0:
+    #     return shadow_df
+    # if shadow_df.loc[0, "start"] == epochs[0]:
+    #     shadow_df.loc[0, "partial"] = True
+    # if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
+    #     shadow_df.loc[shadow_df.index[-1], "partial"] = True
+    return visibility, elevation, time, communication_windows
