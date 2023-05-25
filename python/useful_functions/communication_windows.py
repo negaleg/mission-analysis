@@ -87,8 +87,11 @@ def compute_visibility(pos_ecf, station, dates_name):
         if visibility_windows['visbility']:
             communication_windows['time'] = time[i]
             communication_windows['visibility'] = visibility[i]
-            
-
+            communication_windows['start_streak'] = visibility_windows['start_streak'][i]
+            communication_windows['streak_id'] = visibility_windows['streak_id'][i]
+            communication_windows['streak_counter'] = visibility_windows['streak_counter'][i]
+            communication_windows['streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
+    visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
 
     shadow_df["partial"] = False
     if shadow_df.shape[0] == 0:
