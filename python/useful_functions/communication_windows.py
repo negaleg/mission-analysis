@@ -9,7 +9,6 @@ from tudatpy.kernel.astro.time_conversion import julian_day_to_calendar_date, se
 from useful_functions import get_input_data
 
 
-
 def compute_visibility(pos_ecf, station, dates_name):
     """
     Compute the visibility of the spacecraft from a given ground station.
@@ -57,14 +56,15 @@ def compute_visibility(pos_ecf, station, dates_name):
     dates: dict[str, timedelta | datetime] = get_input_data.get_dates(dates_name)
     dates_new = get_input_data.get_dates(dates_name)  # calendar date
     simulation_start_epoch = time_conversion.julian_day_to_seconds_since_epoch(
-        time_conversion.calendar_date_to_julian_day(dates_new["start_date"])) #seconds since epoch
+        time_conversion.calendar_date_to_julian_day(dates_new["start_date"]))  # seconds since epoch
     simulation_end_epoch = time_conversion.julian_day_to_seconds_since_epoch(
-        time_conversion.calendar_date_to_julian_day(dates_new["end_date"])) #seconds since epoch
+        time_conversion.calendar_date_to_julian_day(dates_new["end_date"]))  # seconds since epoch
     simulation_step_epoch = dates_new["step_size"].seconds  # seconds
     tm = np.arange(simulation_start_epoch, simulation_end_epoch + simulation_step_epoch, simulation_step_epoch)
-    time=[]
+    time = []
     for i in tm:
-        time.append(time_conversion.julian_day_to_calendar_date(time_conversion.seconds_since_epoch_to_julian_day(i))) #calendar date
+        time.append(time_conversion.julian_day_to_calendar_date(
+            time_conversion.seconds_since_epoch_to_julian_day(i)))  # calendar date
 
     station_ecf = transformer.transform(station["longitude"], station["latitude"], station["altitude"], radians=False)
     station_sat_vector = pos_ecf - station_ecf
@@ -74,13 +74,13 @@ def compute_visibility(pos_ecf, station, dates_name):
     elevation = 90 - np.arccos(dot_product) * 180 / np.pi
     visibility = elevation >= station["minimum_elevation"]
 
-
-
     visibility_windows = pd.DataFrame({"time": time, "visibility": visibility})
-    visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(visibility_windows['visibility'].shift()) #we define the initial points of a communication window
+    visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(
+        visibility_windows['visibility'].shift())  # we define the initial points of a communication window
     visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
     visibility_windows['streak_counter'] = visibility_windows.groupby('streak_id').cumcount() + 1
-    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby(
+        'streak_id').cumcount() + 1) * simulation_step_epoch
 
     communication_windows = pd.DataFrame()
     for i in range(len(visibility)):
@@ -88,10 +88,10 @@ def compute_visibility(pos_ecf, station, dates_name):
             communication_windows.at[i, 'time'] = time[i]
             communication_windows.at[i, 'visibility'] = visibility[i]
             communication_windows.at[i, 'start_of_streak'] = visibility_windows['start_of_streak'][i]
-            communication_windows.at[i, 'streak_id'] = visibility_windows['streak_id'][i]
-            communication_windows.at[i, 'streak_counter'] = visibility_windows['streak_counter'][i]
-            communication_windows.at[i, 'streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
-    visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
+            # communication_windows.at[i, 'streak_id'] = 0
+            # communication_windows.at[i, 'streak_counter'] = visibility_windows['streak_counter'][i]
+            # communication_windows.at[i, 'streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
+    communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
 
     # shadow_df["partial"] = False
     # if shadow_df.shape[0] == 0:
