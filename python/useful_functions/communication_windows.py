@@ -75,12 +75,10 @@ def compute_visibility(pos_ecf, station, dates_name):
     visibility = elevation >= station["minimum_elevation"]
 
     visibility_windows = pd.DataFrame({"time": time, "visibility": visibility})
-    visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(
-        visibility_windows['visibility'].shift())  # we define the initial points of a communication window
+    visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(visibility_windows['visibility'].shift())  # we define the initial points of a communication window
     visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
     visibility_windows['streak_counter'] = visibility_windows.groupby('streak_id').cumcount() + 1
-    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby(
-        'streak_id').cumcount() + 1) * simulation_step_epoch
+    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
 
     communication_windows = pd.DataFrame()
     for i in range(len(visibility)):
