@@ -24,29 +24,12 @@ def compute_visibility(pos_ecf, station, dates_name):
 
     Returns
     -------
-    visibility : ndarray
-        Returns a vector with the value of the visibility at each epoch :
-         - False if there is no communication between the satellite and the ground station
-         - True if there is communication between the satellite and the ground station
-
-    elevation : ndarray
-        Returns a vector containing the elevation angle between the satellite and the ground station
-
-    time : ndarray
-        Returns a vector containing the time in calendar date
-
-    visibility_windows: dataframe
+    communication_windows: dataframe
         Returns a data frame containing the following information about the communication windows
-         - 'time'                   : time in calendar date
-         - 'visibility'             : boolean on state of visibility
-         - 'start_of_streak'        : boolean which is 'True' if it is the start of a communication window
-                                        or a no-communication window, 'False' if not
-         - 'streak_id'              : integer that sequentially unequivocally identifies the communication window
-                                        or a no-communication window
-         - 'streak_counter'         : integer that identifies the elements of a single communication window
-                                        or a no-communication window
-         - 'streak_counter_seconds' : elapsed time in seconds since the start of a communication window
-                                        or a no-communication window
+         - 'start' : start date of the communication window
+         - 'end' : end date of the communication window
+         - 'duration' : duration of the communication window
+         - 'partial' : True if it is a partial communication window, False if not
     """
     transformer = Transformer.from_crs(
         {"proj": 'latlong', "ellps": 'WGS84', "datum": 'WGS84'},
@@ -106,4 +89,4 @@ def compute_visibility(pos_ecf, station, dates_name):
     if communication_windows.loc[communication_windows.index[-1], "end"] == time[-1]:
         communication_windows.loc[communication_windows.index[-1], 'partial'] = True
 
-    return visibility, elevation, time, communication_windows
+    return communication_windows
