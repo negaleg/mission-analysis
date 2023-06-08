@@ -76,23 +76,34 @@ def compute_visibility(pos_ecf, station, dates_name):
 
     visibility_windows = pd.DataFrame({"time": time, "visibility": visibility})
     visibility_windows['start_of_streak'] = visibility_windows.visibility.ne(visibility_windows['visibility'].shift())  # we define the initial points of a communication window
-    visibility_windows['streak_id'] = visibility_windows['start_of_streak'].cumsum()
-    visibility_windows['streak_counter'] = visibility_windows.groupby('streak_id').cumcount() + 1
-    visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
+    visibility_windows['end_of_streak'] = visibility_windows.visibility.ne(visibility_windows['visibility'].shift(-1))  # we define the initial points of a communication window
 
-    # communication_windows = pd.DataFrame()
     vis = []
     t=[]
     start=[]
+    end=[]
 
     for i in range(len(visibility)):
         if visibility[i]:
             vis.append(visibility[i])
             t.append(time[i])
             start.append(visibility_windows['start_of_streak'][i])
-    communication_windows = pd.DataFrame({"time": t, "visibility": vis, "start_of_streak": start})
-    communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
-    communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
-    communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount()) * simulation_step_epoch
+            end.append(visibility_windows['end_of_streak'][i])
+    communication_windows = pd.DataFrame({"time": t, "visibility": vis, "start_streak": start, "end_streak": end})
+    communication_windows.loc[communication_windows['start_streak'], 'start'] = communication_windows['time']
+    communication_windows['start'] = communication_windows['start'].fillna(method="ffill")
+    communication_windows = communication_windows[communication_windows['end_streak']]
+    communication_windows = communication_windows.rename({
+        "time": "end",
+    }, axis=1)
+    communication_windows = communication_windows[["start", "end"]]
+    communication_windows['duration'] = communication_windows['end'] - communication_windows['start']
+    communication_windows = communication_windows.reset_index(drop=True)
+
+    communication_windows['partial'] = False
+    if communication_windows.loc[0, "start"] == time[0]:
+        communication_windows.loc[0, 'partial'] = True
+    if communication_windows.loc[communication_windows.index[-1], "end"] == time[-1]:
+        communication_windows.loc[communication_windows.index[-1], 'partial'] = True
 
     return visibility, elevation, time, communication_windows
