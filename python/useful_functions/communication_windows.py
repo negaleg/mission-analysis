@@ -80,22 +80,19 @@ def compute_visibility(pos_ecf, station, dates_name):
     visibility_windows['streak_counter'] = visibility_windows.groupby('streak_id').cumcount() + 1
     visibility_windows['streak_counter_seconds'] = (visibility_windows.groupby('streak_id').cumcount() + 1) * simulation_step_epoch
 
-    communication_windows = pd.DataFrame()
+    # communication_windows = pd.DataFrame()
+    vis = []
+    t=[]
+    start=[]
+
     for i in range(len(visibility)):
         if visibility[i]:
-            communication_windows.at[i, 'time'] = time[i]
-            communication_windows.at[i, 'visibility'] = visibility[i]
-            communication_windows.at[i, 'start_of_streak'] = visibility_windows['start_of_streak'][i]
-            # communication_windows.at[i, 'streak_id'] = 0
-            # communication_windows.at[i, 'streak_counter'] = visibility_windows['streak_counter'][i]
-            # communication_windows.at[i, 'streak_counter_seconds'] = visibility_windows['streak_counter_seconds'][i]
+            vis.append(visibility[i])
+            t.append(time[i])
+            start.append(visibility_windows['start_of_streak'][i])
+    communication_windows = pd.DataFrame({"time": t, "visibility": vis, "start_of_streak": start})
     communication_windows['streak_id'] = communication_windows['start_of_streak'].cumsum()
+    communication_windows['streak_counter'] = communication_windows.groupby('streak_id').cumcount() + 1
+    communication_windows['streak_counter_seconds'] = (communication_windows.groupby('streak_id').cumcount()) * simulation_step_epoch
 
-    # shadow_df["partial"] = False
-    # if shadow_df.shape[0] == 0:
-    #     return shadow_df
-    # if shadow_df.loc[0, "start"] == epochs[0]:
-    #     shadow_df.loc[0, "partial"] = True
-    # if shadow_df.loc[shadow_df.index[-1], "end"] == epochs[-1]:
-    #     shadow_df.loc[shadow_df.index[-1], "partial"] = True
     return visibility, elevation, time, communication_windows
