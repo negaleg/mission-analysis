@@ -147,7 +147,7 @@ satellite_shadow_function = eclipses.compute_shadow_vector(satellite_position, s
                                                            sun_radius, earth_radius)
 
 groundstation = get_input_data.get_station(groundstation_name)
-visibility, elevation, time, communication_windows = communication_windows.compute_visibility(ecef_position, groundstation, dates_name)
+communication_windows = communication_windows.compute_visibility(ecef_position, groundstation, dates_name)
 
 # # Export results to a CSV file
 # read_write.write_results(spacecraft_name, orbit_name, dates_name,
