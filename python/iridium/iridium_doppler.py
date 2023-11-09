@@ -18,7 +18,7 @@ semi_angle_limit_tolosat = Tolosat[
     "iridium_antenna_half_angle"
 ]  # deg semi-angle visibility
 semi_angle_limit_iridium = Iridium["antenna_half_angle"]  # deg semi-angle visibility
-iridium_antennas_location = "pmX"  # "pmX" or "pmY"
+iridium_antennas_location = "pmY"  # "pmX" or "pmY"
 
 selected_iridium = "IRIDIUM 100"
 
@@ -117,6 +117,13 @@ def compute_doppler_visibility(results_dict):
             results_dict[sat]["doppler_rate_OK"] = (
                 np.abs(results_dict[sat]["doppler_rate"]) <= delta_f_dot_limit
             )
+
+            dist = np.sqrt(dx**2 + dy**2 + dz**2)
+
+            results_dict[sat]["distance_OK"] = (
+                    dist <= 800e3
+            )
+
             results_dict[sat]["tolosat_visibility_OK"] = (
                 results_dict[sat]["tolosat_angle_1"] <= semi_angle_limit_tolosat
             ) | (results_dict[sat]["tolosat_angle_2"] <= semi_angle_limit_tolosat)
@@ -206,7 +213,7 @@ print(f"Minimum IRIDIUM window duration: {IRIDIUM_windows['duration'].min()} sec
 print(f"Maximum IRIDIUM window duration: {IRIDIUM_windows['duration'].max()} seconds")
 print(f"Average IRIDIUM window duration: {IRIDIUM_windows['duration'].mean()} seconds")
 print(
-    f"Average IRIDIUM passes per day: {len(IRIDIUM_windows) / IRIDIUM_windows['seconds'].max() * 86400:.2f} passes"
+    f"Average IRIDIUM passes per day: {len(IRIDIUM_windows ) / IRIDIUM_windows['seconds'].max() * 86400:.2f} passes"
 )
 print(
     f"Average IRIDIUM visibility per day: "

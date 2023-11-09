@@ -109,6 +109,9 @@ def compute_doppler_visibility(results_dict):
                     * np.linalg.norm(gps_position, axis=1)
                 )
             )
+
+            dist = np.sqrt(dx**2 + dy**2 + dz**2)
+
             results_dict[sat]["gps_angle"] = np.rad2deg(gps_angle)
 
             results_dict[sat]["doppler_shift_OK"] = (
@@ -125,11 +128,16 @@ def compute_doppler_visibility(results_dict):
                 results_dict[sat]["gps_angle"] <= semi_angle_limit_gps
             )
 
+            results_dict[sat]["distance_OK"] = (
+                dist <= 200000e3
+            )
+
             results_dict[sat]["all_OK"] = (
                 results_dict[sat]["doppler_shift_OK"]
                 & results_dict[sat]["doppler_rate_OK"]
                 & results_dict[sat]["tolosat_visibility_OK"]
                 & results_dict[sat]["gps_visibility_OK"]
+                & results_dict[sat]["distance_OK"]
             )
 
             if sat == selected_gps:
