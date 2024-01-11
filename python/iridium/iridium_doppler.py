@@ -18,7 +18,7 @@ semi_angle_limit_tolosat = Tolosat[
     "iridium_antenna_half_angle"
 ]  # deg semi-angle visibility
 semi_angle_limit_iridium = Iridium["antenna_half_angle"]  # deg semi-angle visibility
-iridium_antennas_location = "pmX"  # "pmX" or "pmY"
+iridium_antennas_location = "pmZ"  # "pmX", "pmY" or "pmZ"
 
 selected_iridium = "IRIDIUM 100"
 
@@ -31,15 +31,18 @@ selected_iridium_nospace = selected_iridium.replace(" ", "_")
 def compute_doppler_visibility(results_dict):
     sun_directions = results_dict["sun_direction"].to_numpy()
     epochs = results_dict["epochs"].to_numpy()
-    pX_vector, pY_vector, _ = compute_body_vectors(epochs, sun_directions)
+    pX_vector, pY_vector, pZ_vector = compute_body_vectors(epochs, sun_directions)
     if iridium_antennas_location == "pmX":
         iridium_antenna_1_vector = pX_vector
         iridium_antenna_2_vector = -pX_vector
     elif iridium_antennas_location == "pmY":
         iridium_antenna_1_vector = pY_vector
         iridium_antenna_2_vector = -pY_vector
+    elif iridium_antennas_location == "pmZ":    # 1 antenna in the Z direction
+        iridium_antenna_1_vector = pZ_vector
+        iridium_antenna_2_vector = None
     else:
-        raise ValueError("iridium_antennas_location must be pmX or pmY")
+        raise ValueError("iridium_antennas_location must be pmX, pmY or pmZ")
     visibility = [results_dict["epochs"].copy().rename("epochs")]
     sat_results = [results_dict["epochs"].copy().rename("epochs")]
     for sat in tqdm(
@@ -93,14 +96,16 @@ def compute_doppler_visibility(results_dict):
                 )
             )
             results_dict[sat]["tolosat_angle_1"] = np.rad2deg(tolosat_angle_1)
-            tolosat_angle_2 = np.arccos(
-                np.sum(relative_position * iridium_antenna_2_vector, axis=1)
-                / (
-                    np.linalg.norm(relative_position, axis=1)
-                    * np.linalg.norm(iridium_antenna_2_vector, axis=1)
+
+            if iridium_antenna_2_vector is not None:
+                tolosat_angle_2 = np.arccos(
+                    np.sum(relative_position * iridium_antenna_2_vector, axis=1)
+                    / (
+                        np.linalg.norm(relative_position, axis=1)
+                        * np.linalg.norm(iridium_antenna_2_vector, axis=1)
+                    )
                 )
-            )
-            results_dict[sat]["tolosat_angle_2"] = np.rad2deg(tolosat_angle_2)
+                results_dict[sat]["tolosat_angle_2"] = np.rad2deg(tolosat_angle_2)
 
             iridium_angle = np.arccos(
                 np.sum(relative_position * iridium_position, axis=1)
@@ -118,8 +123,13 @@ def compute_doppler_visibility(results_dict):
                 np.abs(results_dict[sat]["doppler_rate"]) <= delta_f_dot_limit
             )
             results_dict[sat]["tolosat_visibility_OK"] = (
-                results_dict[sat]["tolosat_angle_1"] <= semi_angle_limit_tolosat
-            ) | (results_dict[sat]["tolosat_angle_2"] <= semi_angle_limit_tolosat)
+                    results_dict[sat]["tolosat_angle_1"] <= semi_angle_limit_tolosat
+            )
+
+            if iridium_antenna_2_vector is not None:
+                results_dict[sat]["tolosat_visibility_OK"] |= (
+                        results_dict[sat]["tolosat_angle_2"] <= semi_angle_limit_tolosat
+                )
             results_dict[sat]["iridium_visibility_OK"] = (
                 results_dict[sat]["iridium_angle"] <= semi_angle_limit_iridium
             )
@@ -133,7 +143,8 @@ def compute_doppler_visibility(results_dict):
 
             if sat == selected_iridium:
                 sat_results.append(results_dict[sat]["tolosat_angle_1"])
-                sat_results.append(results_dict[sat]["tolosat_angle_2"])
+                if iridium_antenna_2_vector is not None:
+                    sat_results.append(results_dict[sat]["tolosat_angle_2"])
                 sat_results.append(results_dict[sat]["iridium_angle"])
                 sat_results.append(results_dict[sat]["doppler_shift"])
                 sat_results.append(results_dict[sat]["doppler_rate"])
