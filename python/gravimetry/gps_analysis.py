@@ -55,7 +55,7 @@ axes[0].plot(
     linestyle="none",
     marker=".",
 )
-axes[0].set_title("Visibility of gps satellites satisfying all 4 conditions")
+axes[0].set_title("Visibility of gps satellites satisfying all 5 conditions")
 axes[0].set_xlabel("Time since launch [days]")
 axes[0].set_ylabel("Number of satellites [-]")
 axes[0].set_xlim(0, gps_visibility["seconds"].max() / 86400)
@@ -68,7 +68,7 @@ axes[0].plot(
     linestyle="none",
     marker=".",
 )
-axes[0].set_title("Visibility of gps satellites satisfying all 4 conditions")
+axes[0].set_title("Visibility of gps satellites satisfying all 5 conditions")
 axes[0].set_xlabel("Time since launch [days]")
 axes[0].set_ylabel("Number of satellites [-]")
 axes[0].set_xlim(0, gps_visibility["seconds"].max() / 86400)
